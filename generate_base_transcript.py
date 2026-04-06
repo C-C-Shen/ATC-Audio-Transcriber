@@ -12,12 +12,13 @@ import torch
 import faster_whisper
 import numpy as np
 import wave
+from openpyxl import load_workbook
 
 MODEL_DIRECTORY = "models"
-MODEL_NAME = "faster-whisper-small-finetuned-29886"
+MODEL_NAME = "faster-whisper-small-30185-1385-15643"
 
 BASE_AUDIO_FOLDER = "chunked_audio"
-SPECIFIC_AUDIO_FOLDER = "CYTZ4-Twr-Mar-19-2026-1430-1500Z"  # Change this to your actual folder path
+SPECIFIC_AUDIO_FOLDER = "CYVR1-Twr-Apr-04-2026-1700Z-2000Z"  # Change this to your actual folder path
 
 MODEL = os.path.join(MODEL_DIRECTORY, MODEL_NAME)
 INPUT_FULL_PATH = os.path.join(BASE_AUDIO_FOLDER, SPECIFIC_AUDIO_FOLDER)
@@ -76,7 +77,6 @@ def jsonify_segments(segment):
 
 def get_transcription(audio_file):
     audio_waveform = faster_whisper.decode_audio(audio_file)
-
 
     # Preprocess waveform before transcription
     # audio_waveform = bandpass_filter(audio_waveform)
@@ -155,5 +155,15 @@ for file_name in sorted_files:
 # Create a DataFrame and save to Excel
 df = pd.DataFrame(results)
 df.to_excel(f"{INPUT_FULL_PATH}.xlsx", index=False)
+
+wb = load_workbook(f"{INPUT_FULL_PATH}.xlsx")
+ws = wb.active  # first sheet
+
+# Set custom values
+ws["F1"] = "1=Unusable, 2=Mostly Unusable, 3=Partly Unusable/Heavy Noise, 4=Moderate Noise, 5=Minor Noise, 6=No Noise"
+ws["F2"] = '=SUMIFS(E2:E1048576, B2:B1048576, ">=4")'  # formula
+
+# 5️⃣ Save workbook
+wb.save(f"{INPUT_FULL_PATH}.xlsx")
 
 print(f"Transcription complete. Results saved to {INPUT_FULL_PATH}.xlsx")

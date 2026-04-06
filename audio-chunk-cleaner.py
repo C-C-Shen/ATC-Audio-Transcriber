@@ -5,7 +5,7 @@ import os
 
 BASE_FOLDER_INPUT = "source_audio"
 BASE_FOLDER_OUTPUT = "chunked_audio"
-SPECIFIC_INPUT_FOLDER = "CYTZ4-Twr-Mar-24-2026-1030Z-1230Z"
+SPECIFIC_INPUT_FOLDER = "CYVR1-Twr-Apr-04-2026-1700Z-2000Z"
 INPUT_FOLDER = os.path.join(BASE_FOLDER_INPUT, SPECIFIC_INPUT_FOLDER)
 OUTPUT_FOLDER_CHUNK = os.path.join(BASE_FOLDER_OUTPUT, SPECIFIC_INPUT_FOLDER)
 os.makedirs(OUTPUT_FOLDER_CHUNK, exist_ok=True)
@@ -70,6 +70,8 @@ def chunk_audio_on_silence(input_wav, output_prefix, output_folder, silence_thre
         #     chunk = audio_array[i:i+chunk_size]
         #     if np.max(np.abs(chunk)) <= silence_threshold:
         #         best_cut = i
+
+        silent_samples = 0
 
         # chunk on first
         for i in range(start + min_chunk_samples, end, chunk_size):
