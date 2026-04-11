@@ -1,21 +1,31 @@
+import base64
+import json
 import os
+import tempfile
+import gc
+import sys
 import re
-import wave
 
 import pandas as pd
+from pydub import AudioSegment
 import torch
 import faster_whisper
 import numpy as np
-from openpyxl import load_workbook
+import wave
 
-MODEL_DIRECTORY = "models"
-MODEL_NAME = "faster-whisper-small-30185-1385-18168"
+print(torch.__version__)
+print(torch.backends.cudnn.version())
+print(torch.version.cuda)
+print(torch.cuda.is_available())    # should be True
+print(torch.cuda.get_device_properties(0).major)  # GPU compute capability
 
-BASE_AUDIO_FOLDER = "chunked_audio"
-SPECIFIC_AUDIO_FOLDER = "CYOW-Tower-Ground-Apr-7-2026-1630Z-1830Z"  # Change this to your actual folder path
+print("cuDNN version:", torch.backends.cudnn.version())
+print("cuDNN enabled:", torch.backends.cudnn.enabled)
+print("cuDNN available:", torch.backends.cudnn.is_available())
 
-MODEL = os.path.join(MODEL_DIRECTORY, MODEL_NAME)
-INPUT_FULL_PATH = os.path.join(BASE_AUDIO_FOLDER, SPECIFIC_AUDIO_FOLDER)
+
+MODEL = "./models/faster-whisper-small-liveATC-3485"
+INPUT_FULL_PATH = "./chunked_audio/CYTZ4-Twr-Mar-29-2026-1800Z-2000Z/CYTZ4-Twr-Mar-29-2026-1800Z-2000Z_1.wav"
 
 # configure model
 batch_size = 8
@@ -72,6 +82,7 @@ def jsonify_segments(segment):
 def get_transcription(audio_file):
     audio_waveform = faster_whisper.decode_audio(audio_file)
 
+
     # Preprocess waveform before transcription
     # audio_waveform = bandpass_filter(audio_waveform)
     # audio_waveform = normalize_audio(audio_waveform)
@@ -114,50 +125,18 @@ def transcribe_audio(audio_file):
         print(f"[ASR error] {os.path.basename(audio_file)} -> {e}")
         return None, None
 
-# Sort files by extracted number
-file_list = [f for f in os.listdir(INPUT_FULL_PATH) if f.endswith(".wav") and "_" in f]
-sorted_files = sorted(file_list, key=extract_trailing_number)
+wav_path = os.path.join(INPUT_FULL_PATH)
+print(f"Processing: {wav_path}")
 
-# Prepare a list to collect results
-results = []
+# Calculate duration in milliseconds and seconds
+with wave.open(wav_path, 'r') as wav_file:
+    frames = wav_file.getnframes()
+    rate = wav_file.getframerate()
+    duration_sec = frames / float(rate)
+    duration_ms = duration_sec * 1000
 
-# Iterate through files in sorted order
-for file_name in sorted_files:
-    if file_name.endswith(".wav"):
-        wav_path = os.path.join(INPUT_FULL_PATH, file_name)
-        print(f"Processing: {wav_path}")
+# Transcribe the audio
+transcript, _ = transcribe_audio(wav_path)
 
-        # Calculate duration in milliseconds and seconds
-        with wave.open(wav_path, 'r') as wav_file:
-            frames = wav_file.getnframes()
-            rate = wav_file.getframerate()
-            duration_sec = frames / float(rate)
-            duration_ms = duration_sec * 1000
-
-        # Transcribe the audio
-        transcript, _ = transcribe_audio(wav_path)
-
-        # Append the result
-        results.append({
-            "file_name": file_name,
-            "Clarity": "",
-            "transcript": transcript,
-            "Comment": "",
-            "duration": round(duration_sec, 4)
-        })
-
-# Create a DataFrame and save to Excel
-df = pd.DataFrame(results)
-df.to_excel(f"{INPUT_FULL_PATH}.xlsx", index=False)
-
-wb = load_workbook(f"{INPUT_FULL_PATH}.xlsx")
-ws = wb.active  # first sheet
-
-# Set custom values
-ws["F1"] = "1=Unusable, 2=Mostly Unusable, 3=Partly Unusable/Heavy Noise, 4=Moderate Noise, 5=Minor Noise, 6=No Noise"
-ws["F2"] = '=SUMIFS(E2:E1048576, B2:B1048576, ">=4")'  # formula
-
-# 5️⃣ Save workbook
-wb.save(f"{INPUT_FULL_PATH}.xlsx")
-
-print(f"Transcription complete. Results saved to {INPUT_FULL_PATH}.xlsx")
+print(transcript)
+print("DONE")
