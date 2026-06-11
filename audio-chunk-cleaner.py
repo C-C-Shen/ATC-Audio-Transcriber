@@ -5,7 +5,7 @@ import os
 
 BASE_FOLDER_INPUT = "source_audio"
 BASE_FOLDER_OUTPUT = "chunked_audio"
-SPECIFIC_INPUT_FOLDER = "CYVR1-Twr-Apr-04-2026-1700Z-2000Z"
+SPECIFIC_INPUT_FOLDER = "CYOW-Tower-Ground-June-5-2026-2200Z-0330Z"
 INPUT_FOLDER = os.path.join(BASE_FOLDER_INPUT, SPECIFIC_INPUT_FOLDER)
 OUTPUT_FOLDER_CHUNK = os.path.join(BASE_FOLDER_OUTPUT, SPECIFIC_INPUT_FOLDER)
 os.makedirs(OUTPUT_FOLDER_CHUNK, exist_ok=True)
@@ -15,14 +15,61 @@ import librosa
 import noisereduce as nr
 import numpy as np
 
-def normalize_audio(waveform):
-    # Convert to float32
-    y = waveform.astype(np.float32)
+def noise_gate(y, threshold_db=-35.0, reduction_db=40.0):
+    """
+    Simple downward expander / noise gate.
 
-    # Peak normalization
-    peak = np.max(np.abs(y))
-    if peak > 0:
-        y = y / peak
+    threshold_db: level below which signal is attenuated
+    reduction_db: how much to reduce quiet parts
+    """
+
+    y = y.astype(np.float32)
+
+    # Convert to dB
+    eps = 1e-10
+    magnitude = np.abs(y) + eps
+    db = 20 * np.log10(magnitude)
+
+    # Compute gain mask
+    gain_db = np.where(
+        db < threshold_db,
+        reduction_db * (db - threshold_db) / abs(threshold_db),
+        0.0
+    )
+
+    gain = 10 ** (gain_db / 20.0)
+
+    return y * gain
+
+def robust_rms(y):
+    # ignore extreme spikes (radio static / clipping)
+    low = np.percentile(y, 3)
+    high = np.percentile(y, 97)
+    y_clip = np.clip(y, low, high)
+    return np.sqrt(np.mean(y_clip ** 2))
+
+def normalize_audio(y, target_db=-20.0):
+    y = y.astype(np.float32)
+
+    # 1. noise gate first
+    y = noise_gate(y, threshold_db=-40, reduction_db=30)
+
+    # 2. optional: kill DC offset (helps SDR/audio streams)
+    y = y - np.mean(y)
+
+    # 3. robust RMS (prevents spikes dominating)
+    rms = robust_rms(y)
+
+    if rms < 1e-6:
+        return y
+
+    target_rms = 10 ** (target_db / 20.0)
+
+    gain = target_rms / rms
+    y = y * gain
+
+    # 4. final soft limiter (prevents clipping artifacts)
+    y = np.tanh(y)
 
     return y
 

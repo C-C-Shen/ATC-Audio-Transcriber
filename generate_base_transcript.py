@@ -12,7 +12,7 @@ MODEL_DIRECTORY = "models"
 MODEL_NAME = "faster-whisper-small-30185-1385-18168"
 
 BASE_AUDIO_FOLDER = "chunked_audio"
-SPECIFIC_AUDIO_FOLDER = "CYOW-Tower-Ground-Apr-7-2026-1630Z-1830Z"  # Change this to your actual folder path
+SPECIFIC_AUDIO_FOLDER = "CYOW-App-Dep-May-10-2026-1200Z-2000Z"  # Change this to your actual folder path
 
 MODEL = os.path.join(MODEL_DIRECTORY, MODEL_NAME)
 INPUT_FULL_PATH = os.path.join(BASE_AUDIO_FOLDER, SPECIFIC_AUDIO_FOLDER)

@@ -1,5 +1,6 @@
 accelerate==1.1.1
 contractions==0.1.73
+datasets==2.19.1
 faster-whisper==1.1.0
 jiwer==4.0.0
 librosa==0.10.2
@@ -13,4 +14,6 @@ pydub==0.25.1
 seaborn==0.13.2
 soundfile==0.13.1
 torch==2.5.1
-transformers==4.46.2
+torchaudio==2.5.1
+torchvision==0.20.1
+transformers==4.40.0

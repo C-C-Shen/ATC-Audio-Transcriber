@@ -1,8 +1,13 @@
 --extra-index-url https://download.pytorch.org/whl/cu121
 torch==2.5.1+cu121
+torchaudio==2.5.1+cu121
+torchvision==0.20.1+cu121
 accelerate==1.1.1
 contractions==0.1.73
+ctranslate2==4.4.0
+datasets==2.19.1
 faster-whisper==1.1.0
+huggingface_hub>=0.23.0
 jiwer==4.0.0
 librosa==0.10.2
 matplotlib==3.10.7
@@ -14,4 +19,4 @@ pandas==2.3.2
 pydub==0.25.1
 seaborn==0.13.2
 soundfile==0.13.1
-transformers==4.46.2
+transformers==4.46.0

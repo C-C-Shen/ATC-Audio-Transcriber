@@ -43,7 +43,7 @@ EXCEL_DIR = os.path.join(ROOT_DIR,"chunked_audio") # location of all xlsx
 # AUDIO_DIR = "./halifax_october_gte_1.8"
 AUDIO_DIR = os.path.join(ROOT_DIR,"chunked_audio")
 MODEL_NAME = os.path.join(ROOT_DIR,"models/whisper-small-finetuned-30185-early-checkpoint-1385") # if going from previously trained, point it there instead
-OUTPUT_DIR = os.path.join(ROOT_DIR,"models/whisper-small-30185-1385-15643") # end number = seconds of training data
+OUTPUT_DIR = os.path.join(ROOT_DIR,"models/whisper-small-30185-1385-18168") # end number = seconds of training data
 NUM_EPOCHS = 5
 BATCH_SIZE = 8 # 8 for small, 1 for medium
 LEARNING_RATE = 1e-5
@@ -54,8 +54,8 @@ WARMUP_STEPS=50
 
 FROM_CHECKPOINT = True # False if from whisper
 
-TUNED_INPUT = os.path.join(ROOT_DIR,"models/whisper-small-30185-1385-15643")
-OUTPUT_DIR_FASTER = os.path.join(ROOT_DIR,"models/faster-whisper-small-30185-1385-15643")
+TUNED_INPUT = os.path.join(ROOT_DIR,"models/whisper-small-30185-1385-18168")
+OUTPUT_DIR_FASTER = os.path.join(ROOT_DIR,"models/faster-whisper-small-30185-1385-18168")
 
 gc.collect()
 
